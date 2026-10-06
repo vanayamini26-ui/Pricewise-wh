@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}Log in to PriceWise{% endblock %}
+{% macro field(form, id, label, type, name, value, error, autocomplete, hint='') %}
+<div class="field">
+  <label for="{{ form }}-{{ id }}">{{ label }}</label>
+  <div class="control">
+    <input id="{{ form }}-{{ id }}" name="{{ name }}" type="{{ type }}" value="{{ value }}" autocomplete="{{ autocomplete }}"
+           {% if type == 'text' %}autocapitalize="none" autocorrect="off" spellcheck="false" inputmode="email"{% endif %}
+           aria-describedby="{{ form }}-{{ id }}-err" {% if error %}aria-invalid="true"{% endif %} required>
+    {% if type == 'password' %}<button class="pw-toggle" type="button" data-toggle-pw aria-label="Show password" aria-pressed="false">Show</button>{% endif %}
+  </div>
+  {% if hint %}<p class="hint">{{ hint }}</p>{% endif %}
+  <p class="err" id="{{ form }}-{{ id }}-err" role="alert">{{ error }}</p>
+</div>
+{% endmacro %}
+{% block content %}
+<main class="auth">
+  <div class="auth-card">
+    <div class="auth-brand">{% include "logo.html" %}<span>PriceWise</span></div>
+    <p class="tagline">Compare. Choose. Save.</p>
+
+    <div class="tabs" role="group" aria-label="Choose login or sign up">
+      <button type="button" data-tab="login" aria-pressed="{{ 'true' if mode == 'login' else 'false' }}">Log in</button>
+      <button type="button" data-tab="signup" aria-pressed="{{ 'true' if mode == 'signup' else 'false' }}">Sign up</button>
+    </div>
+
+    <form id="login-form" class="auth-form" method="post" action="{{ url_for('login_post') }}" novalidate data-mode="login" {% if mode != 'login' %}hidden{% endif %}>
+      <h1>Welcome back</h1>
+      <p class="sub">Log in to compare electronics prices on Amazon and Flipkart.</p>
+      <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+      <p class="form-err" id="login-form-err" role="alert">{{ errors.form if mode == 'login' else '' }}</p>
+      {{ field('login', 'id', 'Username or email', 'text', 'login', login if mode == 'login' else '', errors.login if mode == 'login' else '', 'username') }}
+      {{ field('login', 'pw', 'Password', 'password', 'password', '', errors.password if mode == 'login' else '', 'current-password') }}
+      <button class="btn" type="submit">Log in</button>
+    </form>
+
+    <form id="signup-form" class="auth-form" method="post" action="{{ url_for('signup_post') }}" novalidate data-mode="signup" {% if mode != 'signup' %}hidden{% endif %}>
+      <h1>Create your account</h1>
+      <p class="sub">It takes a few seconds. Your password is stored securely.</p>
+      <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+      <p class="form-err" id="signup-form-err" role="alert">{{ errors.form if mode == 'signup' else '' }}</p>
+      {{ field('signup', 'id', 'Username or email', 'text', 'login', login if mode == 'signup' else '', errors.login if mode == 'signup' else '', 'username', 'Use an email, or a username of 3 to 30 characters.') }}
+      {{ field('signup', 'pw', 'Password', 'password', 'password', '', errors.password if mode == 'signup' else '', 'new-password', 'At least 6 characters.') }}
+      {{ field('signup', 'confirm', 'Confirm password', 'password', 'confirm', '', errors.confirm if mode == 'signup' else '', 'new-password') }}
+      <button class="btn" type="submit">Create account</button>
+    </form>
+  </div>
+</main>
+{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='auth.js') }}" defer></script>{% endblock %}
